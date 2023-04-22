@@ -25,23 +25,25 @@ class GameLogic:
         self.selected_state = ""
         self.total_options = len(states)
         print(self.total_options)
-        self.current_guess = 48
+        self.current_guess = 0
         self.df = df
+        self.identified_states = []
 
     def check_answer(self):
-        user_answer = self.screen.textinput(f"{self.current_guess}/{self.total_options} state, Guess the state",
+        user_answer = self.screen.textinput(f"{self.current_guess}/{self.total_options} state",
                                             prompt="Guess the state").lower()
 
         if user_answer in self.states_lower and self.current_guess <= self.total_options:
             self.selected_state = self.states[self.states_lower_static.index(user_answer)]
             print(self.selected_state)
             loc = self.df[self.df.state == self.selected_state]
-            print(loc)
+
             coordinates_x = loc["x"].values[0]
             coordinates_y = loc["y"].values[0]
             location = (coordinates_x, coordinates_y)
             self.display_state(self.selected_state, location)
             self.states_lower.remove(self.selected_state.lower())
+            self.identified_states.append(user_answer.title())
             self.current_guess += 1
 
             if self.current_guess > self.total_options:
@@ -51,11 +53,20 @@ class GameLogic:
 
             return True
 
+        elif user_answer == "exit":
+            missed_states = [state for state in self.states if state not in self.identified_states]
+            pandas.DataFrame(missed_states).to_csv("missedstates.csv")
+            return False
+
+        return True
+
     def display_state(self, state, location):
         name = Turtle()
         name.hideturtle()
         name.penup()
         name.color("black")
         name.goto(location)
-        name.write(state, move=True, align="center", font=("courier", 14, "normal"))
+        name.write("\n•\n")
+        name.write(state, move=True, align="center", font=("courier", 10, "normal"))
+
         print(self.total_options)
